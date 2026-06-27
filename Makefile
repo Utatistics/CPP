@@ -5,29 +5,59 @@ DEBUGFLAGS = -g -O0
 
 BUILD_DIR := build
 
-# default executable name
-OUT := main
-TARGET := $(BUILD_DIR)/$(OUT)
-TARGET_DEBUG := $(BUILD_DIR)/$(OUT)_dbg
-
-# source files
+# All sources
 SRC := main.cpp $(wildcard test/*.cpp)
 
-.PHONY: build build_debug run debug clean
+# Single test mode
+TEST ?=
+TEST_SRC := main.cpp test/test$(TEST).cpp
 
+.PHONY: all build run debug clean
+
+# Build everything
+all:
+	@mkdir -p $(BUILD_DIR)
+	$(CXX) $(CXXFLAGS) $(RELEASEFLAGS) \
+	$(SRC) \
+	-o $(BUILD_DIR)/main
+
+
+# Build either all or a specific test
 build:
 	@mkdir -p $(BUILD_DIR)
-	@$(CXX) $(CXXFLAGS) $(RELEASEFLAGS) $(SRC) -o $(TARGET)
+ifeq ($(TEST),)
+	@$(CXX) $(CXXFLAGS) $(RELEASEFLAGS) \
+	$(SRC) \
+	-o $(BUILD_DIR)/main
+else
+	@$(CXX) $(CXXFLAGS) $(RELEASEFLAGS) \
+	$(TEST_SRC) \
+	-o $(BUILD_DIR)/$(shell echo $(TEST) | tr A-Z a-z)
+endif
+
 
 run: build
-	@./$(TARGET)
+ifeq ($(TEST),)
+	@./$(BUILD_DIR)/main
+else
+	@./$(BUILD_DIR)/$(shell echo $(TEST) | tr A-Z a-z)
+endif
 
-build_debug:
+
+debug:
 	@mkdir -p $(BUILD_DIR)
-	$(CXX) $(CXXFLAGS) $(DEBUGFLAGS) $(SRC) -o $(TARGET_DEBUG)
+ifeq ($(TEST),)
+	$(CXX) $(CXXFLAGS) $(DEBUGFLAGS) \
+	$(SRC) \
+	-o $(BUILD_DIR)/main_dbg
+	gdb -tui ./$(BUILD_DIR)/main_dbg
+else
+	$(CXX) $(CXXFLAGS) $(DEBUGFLAGS) \
+	$(TEST_SRC) \
+	-o $(BUILD_DIR)/$(shell echo $(TEST) | tr A-Z a-z)_dbg
+	gdb -tui ./$(BUILD_DIR)/$(shell echo $(TEST) | tr A-Z a-z)_dbg
+endif
 
-debug: build_debug
-	gdb -tui ./$(TARGET_DEBUG)
 
 clean:
 	rm -rf $(BUILD_DIR)
