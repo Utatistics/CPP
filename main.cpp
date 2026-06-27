@@ -2,8 +2,7 @@
 
 int main () { 
     /*
-        make build_debug FILE=main.cpp
-        make run FILE=main.cpp 
+        make run TEST=Any 
     */
 
     /* Standard Template Library */

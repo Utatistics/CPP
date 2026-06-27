@@ -26,14 +26,13 @@ void testAny() {
     assert(c.type() == typeid(std::string));
     assert(c.cast<std::string>() == "hello");
 
-    // mutate string through cast reference
     c.cast<std::string>() = "world";
     assert(c.cast<std::string>() == "world");
 
     // 5. Bad cast (you choose throw/assert behavior)
     bool threw = false;
     try {
-        c.cast<int>(); // wrong type
+        c.cast<int>();
     } catch (...) {
         threw = true;
     }
@@ -46,14 +45,15 @@ void testAny() {
     assert(d.cast<std::string>() == "world");
 
     d.cast<std::string>() = "changed";
-    assert(c.cast<std::string>() == "world"); // original unaffected
+    assert(c.cast<std::string>() == "world");
 
     // 7. Move semantics
     Any e = std::move(d);
     assert(e.has_value());
     assert(e.cast<std::string>() == "changed");
-    // moved-from state (you define exact behavior, but usually empty)
-    assert(!d.has_value() || d.cast<std::string>().empty() || true);
+
+    // moved-from state (should be safe to query, but empty)
+    assert(!d.has_value());
 
     // 8. reset()
     e.reset();
@@ -71,8 +71,44 @@ void testAny() {
     // 10. Complex type support
     Any f = std::vector<int>{1, 2, 3};
     assert(f.cast<std::vector<int>>().size() == 3);
+
     f.cast<std::vector<int>>().push_back(4);
     assert(f.cast<std::vector<int>>().size() == 4);
+
+    // 11. Null safety: type() on empty Any should NOT crash
+    Any z;
+    bool threw_type = false;
+    try {
+        z.type();
+    } catch (...) {
+        threw_type = true;
+    }
+    assert(threw_type);
+
+    // 12. Null safety: cast() on empty Any should throw
+    bool threw_cast = false;
+    try {
+        z.cast<int>();
+    } catch (...) {
+        threw_cast = true;
+    }
+    assert(threw_cast);
+
+    // 13. Copy from empty Any should be safe
+    Any empty1;
+    Any empty2 = empty1;
+    assert(!empty2.has_value());
+
+    Any empty3;
+    Any empty4;
+    empty3 = empty4;
+    assert(!empty3.has_value());
+
+    // 14. reset() idempotency
+    Any r = 10;
+    r.reset();
+    r.reset();
+    assert(!r.has_value());
 
     std::cout << "All Any tests passed\n";
 }
