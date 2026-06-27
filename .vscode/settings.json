@@ -1,0 +1,6 @@
+{
+    "kdb.connectionMap": {},
+    "kdb.targetMap": {},
+    "C_Cpp.default.compilerPath": "/usr/bin/g++",
+    "C_Cpp.default.cppStandard": "c++17"
+}
