@@ -11,3 +11,4 @@ void testAny();
 
 /* Quant Dev Mock Interview */
 void testTaskScheduler();
+void testEventBus();
