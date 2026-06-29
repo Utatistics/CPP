@@ -1,1 +1,1 @@
-C++ OOP exercise for interview prep.
+C++ OOP exercise.
