@@ -4,26 +4,7 @@
 
 #include "../src/EventBus.hpp"
 
-struct PriceUpdate {
-    std::string symbol;
-    double price;
-};
-
-struct OrderBookUpdate {
-    std::string symbol;
-    int bidSize;
-    int askSize;
-};
-
-struct Trade {
-    std::string symbol;
-    int qty;
-    double price;
-};
-
-
 void testEventBus() {
-
     EventBus<PriceUpdate> priceBus;
     EventBus<OrderBookUpdate> bookBus;
     EventBus<Trade> tradeBus;
@@ -33,10 +14,7 @@ void testEventBus() {
     int tradeTicks = 0;
 
     /*
-        subscribe returns a RAII handle.
-
-        The callback should be stored inside the bus.
-        The Subscription should only manage lifetime.
+        subscribe returns RAII handle
     */
     auto priceSub = priceBus.subscribe(
         [&](const PriceUpdate& p)
@@ -63,6 +41,7 @@ void testEventBus() {
         }
     );
 
+
     /*
         normal publishing
     */
@@ -86,45 +65,36 @@ void testEventBus() {
     assert(tradeTicks == 2);
 
     /*
-        test unsubscribe
+        unsubscribe test
     */
     priceSub.unsubscribe();
     priceBus.publish(
         PriceUpdate{"AAPL", 102.0}
     );
-    // callback should not fire
+    // price callback removed
     assert(priceTicks == 2);
 
     /*
-        other event buses should be unaffected
+        other event buses unaffected
     */
     bookBus.publish(
         OrderBookUpdate{"AAPL", 700, 800}
     );
     assert(bookTicks == 2);
 
-
-
     /*
-        test move semantics
-
-        after move:
-            moved-from subscription should be inactive
-            new subscription owns it
+        move semantics test
     */
+
     auto tradeSub2 = std::move(tradeSub);
     tradeBus.publish(
         Trade{"AAPL", 200, 102.0}
     );
     assert(tradeTicks == 3);
 
-
     /*
-        destructor test
-
-        leaving scope should automatically unsubscribe
+        destructor automatically unsubscribes
     */
-
     {
         auto tempSub = priceBus.subscribe(
             [&](const PriceUpdate&)
@@ -132,88 +102,29 @@ void testEventBus() {
                 priceTicks++;
             }
         );
-
         priceBus.publish(
             PriceUpdate{"AAPL", 103.0}
         );
-
         assert(priceTicks == 3);
 
-    } // tempSub destroyed here
+    } // tempSub destroyed
     priceBus.publish(
         PriceUpdate{"AAPL", 104.0}
     );
 
-    // tempSub should have disappeared
+    // tempSub was removed
     assert(priceTicks == 3);
 
     /*
-        self-unsubscribe / double unsubscribe safety
+        double unsubscribe safety
     */
 
     tradeSub2.unsubscribe();
-    tradeSub2.unsubscribe(); // should be safe
-
-
+    tradeSub2.unsubscribe();
     tradeBus.publish(
         Trade{"AAPL", 300, 105.0}
     );
-
-
     assert(tradeTicks == 3);
 
-
-
     std::cout << "EventBus tests passed\n";
-}
-
-    EventBus<PriceUpdate> priceBus;
-    EventBus<OrderBookUpdate> bookBus;
-    EventBus<Trade> tradeBus;
-
-    int priceTicks = 0;
-    int bookTicks = 0;
-    int tradeTicks = 0;
-
-    /*
-    If some template parameters are not explicitly given, 
-    and if it can be deduced from function arguments, 
-    C++ will do so. 
-    */
-    auto priceSub = priceBus.subscribe(
-        [&](const PriceUpdate& p) { priceTicks++; }
-    );
-
-    auto bookSub = bookBus.subscribe(
-        [&](const OrderBookUpdate& b) { bookTicks++; }
-    );
-
-    auto tradeSub = tradeBus.subscribe(
-        [&](const Trade& t) { tradeTicks++;}
-    );
-
-    // simulate market activity
-    priceBus.publish({"AAPL", 101.0});
-    priceBus.publish({"AAPL", 102.0});
-
-    bookBus.publish({"AAPL", 500, 600});
-
-    tradeBus.publish({"AAPL", 100, 101.5});
-    tradeBus.publish({"AAPL", 50, 101.7});
-
-    assert(priceTicks == 2);
-    assert(bookTicks == 1);
-    assert(tradeTicks == 2);
-
-    // unsubscribe one stream and verify isolation
-    priceSub.unsubscribe();
-
-    priceBus.publish({"AAPL", 103.0});
-    assert(priceTicks == 2);
-
-    // other buses unaffected
-    bookBus.publish({"AAPL", 700, 800});
-    assert(bookTicks == 2);
-
-    std::cout << "Rich EventBus tests passed\n";
 }

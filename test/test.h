@@ -10,5 +10,6 @@ void testFunction();
 void testAny();
 
 /* Quant Dev Mock Interview */
+void testCallable();
 void testTaskScheduler();
 void testEventBus();
