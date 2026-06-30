@@ -15,8 +15,9 @@ int main () {
     // testAny();
 
     /* Mock QRT questions */
+    testCallable();
     // testTaskScheduler();
-    testEventBus();
+    // testEventBus();
     
     return 0;
 }

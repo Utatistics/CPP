@@ -14,7 +14,7 @@ void testEventBus() {
     int tradeTicks = 0;
 
     /*
-        subscribe returns RAII handle
+        1. subscribe returns RAII handle
     */
     auto priceSub = priceBus.subscribe(
         [&](const PriceUpdate& p)
@@ -41,9 +41,8 @@ void testEventBus() {
         }
     );
 
-
     /*
-        normal publishing
+        2, normal publishing
     */
     priceBus.publish(
         PriceUpdate{"AAPL", 100.0}
@@ -65,17 +64,16 @@ void testEventBus() {
     assert(tradeTicks == 2);
 
     /*
-        unsubscribe test
+        3. unsubscribe test
     */
     priceSub.unsubscribe();
     priceBus.publish(
         PriceUpdate{"AAPL", 102.0}
     );
-    // price callback removed
-    assert(priceTicks == 2);
+    assert(priceTicks == 2);  // price callback removed
 
     /*
-        other event buses unaffected
+        4. other event buses unaffected
     */
     bookBus.publish(
         OrderBookUpdate{"AAPL", 700, 800}
@@ -83,9 +81,8 @@ void testEventBus() {
     assert(bookTicks == 2);
 
     /*
-        move semantics test
+       5. move semantics test
     */
-
     auto tradeSub2 = std::move(tradeSub);
     tradeBus.publish(
         Trade{"AAPL", 200, 102.0}
@@ -93,7 +90,7 @@ void testEventBus() {
     assert(tradeTicks == 3);
 
     /*
-        destructor automatically unsubscribes
+        6. destructor automatically unsubscribes
     */
     {
         auto tempSub = priceBus.subscribe(
@@ -111,14 +108,11 @@ void testEventBus() {
     priceBus.publish(
         PriceUpdate{"AAPL", 104.0}
     );
-
-    // tempSub was removed
-    assert(priceTicks == 3);
+    assert(priceTicks == 3);  // tempSub was removed
 
     /*
-        double unsubscribe safety
+        7. double unsubscribe safety
     */
-
     tradeSub2.unsubscribe();
     tradeSub2.unsubscribe();
     tradeBus.publish(
