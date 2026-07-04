@@ -38,7 +38,3 @@ void testCallable() {
     std::cout << "All tests passed!" << std::endl;
 }
 
-int main() {
-    testCallable();
-    return 0;
-}
