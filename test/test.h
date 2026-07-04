@@ -13,3 +13,4 @@ void testAny();
 void testCallable();
 void testTaskScheduler();
 void testEventBus();
+void testSignal();
