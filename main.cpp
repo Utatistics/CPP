@@ -18,7 +18,8 @@ int main () {
     // testCallable();
     // testTaskScheduler();
     // testEventBus();
-    testSignal();
+    // testSignal();
+    testAllocator();
     
     return 0;
 }
