@@ -1,1 +1,1 @@
-C++ OOP exercise.
+C++ exercise.
